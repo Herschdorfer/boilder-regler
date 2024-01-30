@@ -1,3 +1,17 @@
+
+/**
+ * @file main.cpp
+ * @brief Boiler controller for the ESP32.
+ *
+ * This file contains the boiler controller for the ESP32. It is responsible for
+ * connecting to the WiFi network, connecting to the MQTT server, handling the
+ * TFT display, handling the MQTT communication and handling the hardware timer
+ * interrupt.
+ *
+ * @version 1.0.0
+ * @date 2021-05-18
+ *
+ */
 #include "Adafruit_ST77xx.h"
 #include "Client.h"
 #include "ESP32_PWM.h"
@@ -14,6 +28,8 @@
 
 #include "uptime.hpp"
 
+/* Defines */
+
 // pinouts from https://github.com/Xinyuan-LilyGO/TTGO-T-Display
 #define TFT_MOSI 19
 #define TFT_SCLK 18
@@ -24,11 +40,13 @@
 
 #define HW_TIMER_INTERVAL_US 20L
 
+/* Constants */
 const char *const mqtt_server = "omv"; // mqtt server
 
 const char *const topic_status = "/boiler/status";
 const char *const topic_power_max = "/boiler/control";
 
+/* Global variables */
 WiFiClient espClient;
 PubSubClient client(espClient); // lib required for mqtt
 
@@ -57,6 +75,15 @@ float PWM_Freq1 = 100.0f;
 // You can assign any duty_cycle for any PWM here, from 0-100
 float PWM_DutyCycle1 = 50.0;
 
+/**
+ * @brief Parses the JSON message.
+ *
+ * This function is responsible for parsing the JSON message.
+ *
+ * @param payload   Payload of the message
+ * @param length    Length of the message
+ * @return void
+ */
 void parse_json(byte *payload, unsigned int length) {
 
   JsonDocument doc;
@@ -75,6 +102,16 @@ void parse_json(byte *payload, unsigned int length) {
   }
 }
 
+/**
+ * @brief Callback function for MQTT.
+ *
+ * This function is responsible for handling the MQTT messages.
+ *
+ * @param topic     Topic of the message
+ * @param payload   Payload of the message
+ * @param length    Length of the message
+ * @return void
+ */
 void callback(char const *topic, byte *payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
@@ -89,6 +126,13 @@ void callback(char const *topic, byte *payload, unsigned int length) {
   }
 }
 
+/**
+ * @brief Reconnects to the MQTT server.
+ *
+ * This function is responsible for reconnecting to the MQTT server.
+ *
+ * @return void
+ */
 void reconnect() {
   while (!client.connected()) {
     if (client.connect("ESP32_clientID")) {
@@ -104,6 +148,13 @@ void reconnect() {
   }
 }
 
+/**
+ * @brief Connects to the MQTT server.
+ *
+ * This function is responsible for connecting to the MQTT server.
+ *
+ * @return void
+ */
 void connectMqtt() {
   client.connect("ESP32_clientID");
   client.publish(topic_status, "connected to MQTT");
@@ -115,12 +166,30 @@ void connectMqtt() {
   }
 }
 
+/**
+ * @brief Handles the hardware timer interrupt.
+ *
+ * This function is responsible for handling the hardware timer interrupt.
+ * It is executed in a separate task.
+ *
+ * @param pvParameters
+ * @return void
+ */
 bool IRAM_ATTR TimerHandler(void *) {
   ISR_PWM.run();
 
   return true;
 }
 
+/**
+ * @brief Handles the TFT display.
+ *
+ * This function is responsible for handling the TFT display.
+ * It is executed in a separate task.
+ *
+ * @param pvParameters
+ * @return void
+ */
 [[noreturn]] void handleTft(void *) {
   for (;;) {
     tft.setTextWrap(false);
@@ -156,6 +225,15 @@ bool IRAM_ATTR TimerHandler(void *) {
   }
 }
 
+/**
+ * @brief Handles the MQTT communication.
+ *
+ * This function is responsible for handling the MQTT communication.
+ * It is executed in a separate task.
+ *
+ * @param pvParameters
+ * @return void
+ */
 [[noreturn]] void handleMqtt(void *) {
   for (;;) {
     if (!client.connected()) {
@@ -168,6 +246,15 @@ bool IRAM_ATTR TimerHandler(void *) {
   }
 }
 
+/**
+ * @brief Initializes the setup for the boiler controller.
+ *
+ * This function sets up the necessary components and configurations for the
+ * boiler controller. It initializes the serial communication, connects to the
+ * WiFi network, sets up the MQTT client, initializes the TFT display, connects
+ * to the MQTT server, sets up the hardware timer interrupt, creates tasks for
+ * handling the TFT display and MQTT communication.
+ */
 void setup(void) {
   Serial.begin(9600);
 
@@ -195,6 +282,13 @@ void setup(void) {
   xTaskCreate(handleMqtt, "Task_MQTT", 2000, nullptr, 2, nullptr);
 }
 
+/**
+ * @brief This function represents the main loop of the program.
+ *
+ * It is responsible for executing the main logic of the program repeatedly.
+ *
+ * @return void
+ */
 void loop() {
   esp_task_wdt_init(1,
                     true); // Enable ESP watchdog with a timeout of 1 seconds

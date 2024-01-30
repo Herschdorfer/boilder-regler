@@ -90,15 +90,15 @@ void parse_json(byte *payload, unsigned int length) {
   deserializeJson(doc, payload, length);
 
   if (doc.containsKey("power_max")) {
-    power_max = doc["power_max"];
+    power_max = doc["power_max"].as<uint16_t>();
   }
 
   if (doc.containsKey("power_desired")) {
-    power_desired = doc["power_desired"];
+    power_desired = doc["power_desired"].as<uint16_t>();
   }
 
   if (doc.containsKey("power_actual")) {
-    power_actual = doc["power_actual"];
+    power_actual = doc["power_actual"].as<uint16_t>();
   }
 }
 

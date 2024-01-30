@@ -1,0 +1,12 @@
+# Clang-Tidy Configuration File
+
+# Add your Clang-Tidy checks and options here
+
+# BEGIN: Clang-Tidy Checks
+Checks: '*'
+# END: Clang-Tidy Checks
+
+# BEGIN: Clang-Tidy Options
+Options:
+    -header-filter=.*
+# END: Clang-Tidy Options

@@ -54,8 +54,10 @@ PubSubClient client(espClient); // lib required for mqtt
 Adafruit_ST7789 tft =
     Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 
+// Init WiFiManager
 WiFiManager wifiManager;
 
+// Init Uptime
 Uptime uptime;
 // Init ESP32_ISR_PWM
 ESP32_PWM ISR_PWM;
@@ -64,10 +66,12 @@ ESP32_PWM ISR_PWM;
 ESP32Timer ITimer(1);
 uint32_t PWM_Pin = TFT_BL; // Pin 2 = ESP32 GPIO 2
 
+// Power values
 uint16_t power_max = 0;
 uint16_t power_desired = 0;
 uint16_t power_actual = 0;
 
+// PWM channel number
 uint8_t channelNum;
 
 float PWM_Freq1 = 100.0f;
